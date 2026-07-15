@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { getMonthGrid, isToday, isPast, isOutOfRange, WEEKDAYS } from '../../utils/dateUtils';
+import { getMonthGrid, isToday, isPast, WEEKDAYS } from '../../utils/dateUtils';
 import './Calendar.css';
 
 interface CalendarProps {
@@ -37,7 +37,6 @@ export function Calendar({ selectedDate, onSelectDate }: CalendarProps) {
 
   const handleDayClick = (day: number) => {
     if (isPast(viewYear, viewMonth, day)) return;
-    if (isOutOfRange(viewYear, viewMonth, day)) return;
     const month = String(viewMonth + 1).padStart(2, '0');
     const dayStr = String(day).padStart(2, '0');
     onSelectDate(`${viewYear}-${month}-${dayStr}`);
@@ -79,10 +78,9 @@ export function Calendar({ selectedDate, onSelectDate }: CalendarProps) {
           }
 
           const past = isPast(viewYear, viewMonth, day);
-          const outOfRange = isOutOfRange(viewYear, viewMonth, day);
           const today_ = isToday(viewYear, viewMonth, day);
           const sel = isSelected(day);
-          const disabled = past || outOfRange;
+          const disabled = past;
 
           return (
             <button

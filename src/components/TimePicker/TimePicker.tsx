@@ -32,9 +32,8 @@ export function TimePicker({ selectedDate, selectedTime, onSelectTime }: TimePic
       if (data && data.length > 0) {
         setAvailableHours(new Set(data.map((r: any) => r.hour)));
       } else {
-        // 该日期还没设置过，用 time_slots 默认值
-        const { data: slots } = await supabase.from('time_slots').select('*').eq('is_active', true);
-        if (slots) setAvailableHours(new Set(slots.map((s: any) => s.hour)));
+        // 该日期没有设置过，默认全部不可用
+        setAvailableHours(new Set());
       }
       setLoading(false);
     };

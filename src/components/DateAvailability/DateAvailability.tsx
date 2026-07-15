@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import { getMonthGrid, isToday, isPast, isOutOfRange, WEEKDAYS, formatDateCN } from '../../utils/dateUtils';
+import { getMonthGrid, isToday, isPast, WEEKDAYS, formatDateCN } from '../../utils/dateUtils';
 import './DateAvailability.css';
 
 export function DateAvailability() {
@@ -31,18 +31,12 @@ export function DateAvailability() {
       .select('*')
       .eq('date', dates[0])
       .order('hour');
+    const map: Record<number, boolean> = {};
     if (data && data.length > 0) {
-      const map: Record<number, boolean> = {};
       data.forEach((r: any) => { map[r.hour] = r.is_available; });
-      setAvailability(map);
-    } else {
-      const { data: slots } = await supabase.from('time_slots').select('*');
-      if (slots) {
-        const map: Record<number, boolean> = {};
-        slots.forEach((s: any) => { map[s.hour] = s.is_active; });
-        setAvailability(map);
-      }
     }
+    // 没有数据的日期默认全关
+    setAvailability(map);
   }, []);
 
   const handleDayDown = (day: number, e: React.MouseEvent) => {
@@ -166,8 +160,7 @@ export function DateAvailability() {
           {grid.flat().map((day, i) => {
             if (day === null) return <div key={`e-${i}`} className="day-cell empty" />;
             const past = isPast(viewYear, viewMonth, day);
-            const out = isOutOfRange(viewYear, viewMonth, day);
-            const disabled = past || out;
+            const disabled = past;
             const sel = isSel(day);
             const td = isToday(viewYear, viewMonth, day);
             return (
