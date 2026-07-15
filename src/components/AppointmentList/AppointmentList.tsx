@@ -43,8 +43,8 @@ export function AppointmentList({ appointments, loading, onDelete }: Appointment
               <span className="appt-created">
                 {new Date(a.created_at).toLocaleString('zh-CN')}
               </span>
-              {(a as any).location && (
-                <span className="appt-location">📍 {(a as any).location}</span>
+              {a.location && (
+                <span className="appt-location">📍 {a.location}</span>
               )}
             </div>
           </div>

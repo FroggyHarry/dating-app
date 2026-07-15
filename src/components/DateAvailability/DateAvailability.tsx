@@ -64,10 +64,12 @@ export function DateAvailability() {
       return;
     }
 
-    // 点击已选中的单日 → 取消选中
-    if (selectedDates.length === 1 && selectedDates[0] === key) {
-      setSelectedDates([]);
-      setAvailability({});
+    // 点击已选中的日期 → 取消它（多选时移除，单选时清空）
+    if (selectedDates.includes(key)) {
+      const next = selectedDates.filter((d) => d !== key);
+      setSelectedDates(next);
+      if (next.length > 0) loadAvailability(next);
+      else setAvailability({});
       return;
     }
 

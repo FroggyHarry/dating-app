@@ -36,5 +36,7 @@ export interface DbAppointment {
   time_slot: string;
   activity: string;
   cuisine: string;
+  ip_address: string | null;
+  location: string | null;
   created_at: string;
 }
