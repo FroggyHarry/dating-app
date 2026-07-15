@@ -67,14 +67,18 @@ export function Confirmation({ dateDetails, onReset, onFrogTripleClick, isPendin
             <span className="detail-icon">⏰</span>
             <span className="detail-text">{timeSlot ? formatTimeCN(timeSlot) : ''}</span>
           </div>
-          <div className="detail-row">
-            <span className="detail-icon">🎯</span>
-            <span className="detail-text">{getLabel(ACTIVITIES, activity)}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-icon">🍽️</span>
-            <span className="detail-text">{getLabel(CUISINES, food)}</span>
-          </div>
+          {CONFIG.hasActivities && (
+            <div className="detail-row">
+              <span className="detail-icon">🎯</span>
+              <span className="detail-text">{getLabel(ACTIVITIES, activity)}</span>
+            </div>
+          )}
+          {CONFIG.hasActivities && (
+            <div className="detail-row">
+              <span className="detail-icon">🍽️</span>
+              <span className="detail-text">{getLabel(CUISINES, food)}</span>
+            </div>
+          )}
         </div>
 
         {CONFIG.showAnimals && (
