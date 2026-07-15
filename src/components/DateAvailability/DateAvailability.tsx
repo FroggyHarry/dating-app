@@ -14,6 +14,7 @@ export function DateAvailability() {
   // 拖拽范围选择
   const dragStartRef = useRef<string | null>(null);
   const isDraggingRef = useRef(false);
+  const dragModeRef = useRef<'add' | 'remove'>('add'); // 本次拖拽是加还是减
 
   const grid = getMonthGrid(viewYear, viewMonth);
 
@@ -40,47 +41,50 @@ export function DateAvailability() {
   }, []);
 
   const handleDayDown = (day: number, e: React.MouseEvent) => {
+    e.preventDefault();
     const key = dateKey(day);
 
-    // Ctrl+点击：切换单个日期
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      if (selectedDates.includes(key)) {
-        const next = selectedDates.filter((d) => d !== key);
-        setSelectedDates(next);
-        if (next.length > 0) loadAvailability(next);
-        else setAvailability({});
-      } else {
-        const next = [...selectedDates, key].sort();
-        setSelectedDates(next);
-        loadAvailability(next);
-      }
-      return;
-    }
-
-    // 点击已选中的日期 → 取消它（多选时移除，单选时清空）
-    if (selectedDates.includes(key)) {
-      const next = selectedDates.filter((d) => d !== key);
-      setSelectedDates(next);
-      if (next.length > 0) loadAvailability(next);
-      else setAvailability({});
-      return;
-    }
-
-    // 普通点击或拖拽：开始新选择
+    // 判断操作模式：当前日期已选中 → 移除模式，未选中 → 添加模式
+    const mode: 'add' | 'remove' = selectedDates.includes(key) ? 'remove' : 'add';
+    dragModeRef.current = mode;
     dragStartRef.current = key;
     isDraggingRef.current = true;
-    setSelectedDates([key]);
-    loadAvailability([key]);
+
+    // 切换这个日期
+    setSelectedDates((prev) => {
+      if (mode === 'add') {
+        return prev.includes(key) ? prev : [...prev, key].sort();
+      } else {
+        const next = prev.filter((d) => d !== key);
+        if (next.length > 0) loadAvailability(next);
+        else setAvailability({});
+        return next;
+      }
+    });
   };
 
   const handleDayEnter = (day: number) => {
     if (!isDraggingRef.current || !dragStartRef.current) return;
     const key = dateKey(day);
     const start = dragStartRef.current;
-    const allDates = getDatesInRange(start, key);
-    setSelectedDates(allDates);
-    if (allDates.length === 1) loadAvailability(allDates);
+    const range = getDatesInRange(start, key);
+    const mode = dragModeRef.current;
+
+    setSelectedDates((prev) => {
+      if (mode === 'add') {
+        // 把范围内所有日期加入
+        const set = new Set(prev);
+        range.forEach((d) => set.add(d));
+        return Array.from(set).sort();
+      } else {
+        // 把范围内所有日期移除
+        const removeSet = new Set(range);
+        const next = prev.filter((d) => !removeSet.has(d));
+        if (next.length > 0) loadAvailability(next);
+        else setAvailability({});
+        return next;
+      }
+    });
   };
 
   const handleDayUp = () => {
