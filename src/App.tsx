@@ -49,7 +49,8 @@ function App() {
 
   const handleConfirm = useCallback(async () => {
     const { date, timeSlot, activity, food } = dateDetails;
-    if (!date || !timeSlot || !activity || !food) return;
+    if (!date || !timeSlot) return;
+    if (CONFIG.hasActivities && (!activity || !food)) return;
 
     let loc = '';
     try {
@@ -60,7 +61,7 @@ function App() {
     const status = CONFIG.requireApproval ? 'pending' : 'confirmed';
 
     await addAppointment({
-      date, time_slot: timeSlot, activity, cuisine: food,
+      date, time_slot: timeSlot, activity: activity || '', cuisine: food || '',
       source: APP_MODE,
       guest_name: CONFIG.requireName ? guestName : undefined,
       status,
