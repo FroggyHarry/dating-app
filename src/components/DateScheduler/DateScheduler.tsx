@@ -77,9 +77,14 @@ export function DateScheduler({
         <span className="step-line" />
         <span className={`step-dot${step === timeStep ? ' active' : ''}${dateDetails.timeSlot ? ' done' : ''}`}>{CONFIG.requireName ? 3 : 2}</span>
         <span className="step-line" />
-        <span className={`step-dot${step === actStep ? ' active' : ''}${dateDetails.activity ? ' done' : ''}`}>{CONFIG.requireName ? 4 : 3}</span>
-        <span className="step-line" />
-        <span className={`step-dot${step === foodStep ? ' active' : ''}${dateDetails.food ? ' done' : ''}`}>{CONFIG.requireName ? 5 : 4}</span>
+        {hasActs && (
+          <>
+            <span className="step-line" />
+            <span className={`step-dot${step === actStep ? ' active' : ''}${dateDetails.activity ? ' done' : ''}`}>{CONFIG.requireName ? 4 : 3}</span>
+            <span className="step-line" />
+            <span className={`step-dot${step === foodStep ? ' active' : ''}${dateDetails.food ? ' done' : ''}`}>{CONFIG.requireName ? 5 : 4}</span>
+          </>
+        )}
       </div>
 
       <div className="scheduler-header">
@@ -117,14 +122,14 @@ export function DateScheduler({
           </div>
         )}
 
-        {step === actStep && (
+        {hasActs && step === actStep && (
           <div className="step-panel">
             <h3 className="step-title">🎯 选择活动</h3>
             <ActivitySelector activities={activities} selected={dateDetails.activity} onSelect={onUpdateActivity} title="🎯 活动" />
           </div>
         )}
 
-        {step === foodStep && (
+        {hasActs && step === foodStep && (
           <div className="step-panel">
             <h3 className="step-title">🍽️ 选择菜系</h3>
             <ActivitySelector activities={cuisines} selected={dateDetails.food} onSelect={onUpdateFood} title="🍽️ 菜系" />
