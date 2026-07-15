@@ -18,13 +18,12 @@ export function useAppointments() {
   useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
   const addAppointment = useCallback(
-    async (date: string, time_slot: string, activity: string, cuisine: string, meta?: { ip?: string; loc?: string }) => {
+    async (date: string, time_slot: string, activity: string, cuisine: string, meta?: { loc?: string }) => {
       const { error } = await supabase.from('appointments').insert({
         date,
         time_slot,
         activity,
         cuisine,
-        ip_address: meta?.ip || null,
         location: meta?.loc || null,
       });
       if (!error) {

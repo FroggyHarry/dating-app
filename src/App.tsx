@@ -44,19 +44,17 @@ function App() {
   const handleConfirm = useCallback(async () => {
     const { date, timeSlot, activity, food } = dateDetails;
     if (date && timeSlot && activity && food) {
-      // 获取 IP 和位置
-      let ip = '';
+      // 尝试获取位置（IP 由数据库触发器自动记录）
       let loc = '';
       try {
-        const geoRes = await fetch('https://ip-api.com/json/?fields=query,city,country');
+        const geoRes = await fetch('https://ip-api.com/json/?fields=city,country');
         if (geoRes.ok) {
           const geo = await geoRes.json();
-          ip = geo.query || '';
           loc = geo.city ? `${geo.city}, ${geo.country}` : '';
         }
-      } catch { /* 获取失败不影响预约 */ }
+      } catch { /* 获取失败不影响 */ }
 
-      await addAppointment(date, timeSlot, activity, food, { ip, loc });
+      await addAppointment(date, timeSlot, activity, food, { loc });
     }
     setPhase('confirmed');
   }, [dateDetails, addAppointment]);
