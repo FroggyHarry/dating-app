@@ -48,9 +48,18 @@ export function isToday(year: number, month: number, day: number): boolean {
 export function isPast(year: number, month: number, day: number): boolean {
   const now = new Date();
   const target = new Date(year, month, day);
-  // 比较日期（忽略时分秒）
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return target < todayStart;
+}
+
+/** 判断日期是否超过未来10天 */
+export function isOutOfRange(year: number, month: number, day: number): boolean {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const maxDate = new Date(todayStart);
+  maxDate.setDate(maxDate.getDate() + 10);
+  const target = new Date(year, month, day);
+  return target > maxDate;
 }
 
 /** 格式化日期为中文 */

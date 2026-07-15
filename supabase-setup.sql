@@ -102,5 +102,18 @@ CREATE POLICY "anon_read_settings" ON settings FOR SELECT USING (true);
 -- 允许匿名写入 appointments
 CREATE POLICY "anon_insert_appointments" ON appointments FOR INSERT WITH CHECK (true);
 
--- 允许匿名更新 settings（用于改密码）
+-- 允许匿名增删改 activities
+CREATE POLICY "anon_insert_activities" ON activities FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_update_activities" ON activities FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "anon_delete_activities" ON activities FOR DELETE USING (true);
+
+-- 允许匿名增删改 cuisines
+CREATE POLICY "anon_insert_cuisines" ON cuisines FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_update_cuisines" ON cuisines FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "anon_delete_cuisines" ON cuisines FOR DELETE USING (true);
+
+-- 允许匿名更新 time_slots（开关时间段）
+CREATE POLICY "anon_update_time_slots" ON time_slots FOR UPDATE USING (true) WITH CHECK (true);
+
+-- 允许匿名更新 settings
 CREATE POLICY "anon_update_settings" ON settings FOR UPDATE USING (true) WITH CHECK (true);
