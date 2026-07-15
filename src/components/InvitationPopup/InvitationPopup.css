@@ -51,6 +51,21 @@
 .invitation-emoji {
   font-size: 4rem;
   animation: heartbeat 1.5s ease-in-out infinite;
+  cursor: default;
+}
+
+.secret-trigger {
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+}
+
+.secret-trigger:hover {
+  transform: scale(1.1);
+}
+
+.secret-trigger:active {
+  transform: scale(0.95);
 }
 
 @keyframes heartbeat {

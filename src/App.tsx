@@ -74,7 +74,7 @@ function App() {
   return (
     <div className="app-container">
       {phase === 'invitation' && (
-        <InvitationPopup onAccept={handleAccept} />
+        <InvitationPopup onAccept={handleAccept} onSecretClick={handleFrogTripleClick} />
       )}
 
       {phase === 'intermediate' && (
