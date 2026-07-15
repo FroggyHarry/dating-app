@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getMonthGrid, isToday, isPast, isOutOfRange, WEEKDAYS, formatDateCN } from '../../utils/dateUtils';
 import './DateAvailability.css';
@@ -7,25 +7,35 @@ export function DateAvailability() {
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [availability, setAvailability] = useState<Record<number, boolean>>({});
   const [saving, setSaving] = useState(false);
 
+  // 拖拽范围选择
+  const dragStartRef = useRef<string | null>(null);
+  const isDraggingRef = useRef(false);
+
   const grid = getMonthGrid(viewYear, viewMonth);
 
-  // 加载选中日期的可用时段
-  const loadAvailability = useCallback(async (date: string) => {
+  const dateKey = (day: number) => {
+    const m = String(viewMonth + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    return `${viewYear}-${m}-${d}`;
+  };
+
+  // 加载第一个选中日期的可用时段作为模板
+  const loadAvailability = useCallback(async (dates: string[]) => {
+    if (dates.length === 0) { setAvailability({}); return; }
     const { data } = await supabase
       .from('availability')
       .select('*')
-      .eq('date', date)
+      .eq('date', dates[0])
       .order('hour');
     if (data && data.length > 0) {
       const map: Record<number, boolean> = {};
       data.forEach((r: any) => { map[r.hour] = r.is_available; });
       setAvailability(map);
     } else {
-      // 没有数据则从 time_slots 初始化
       const { data: slots } = await supabase.from('time_slots').select('*');
       if (slots) {
         const map: Record<number, boolean> = {};
@@ -35,23 +45,43 @@ export function DateAvailability() {
     }
   }, []);
 
-  const handleSelectDate = (date: string) => {
-    setSelectedDate(date);
-    loadAvailability(date);
+  const handleDayDown = (day: number) => {
+    const key = dateKey(day);
+    dragStartRef.current = key;
+    isDraggingRef.current = true;
+    setSelectedDates([key]);
+    loadAvailability([key]);
   };
 
+  const handleDayEnter = (day: number) => {
+    if (!isDraggingRef.current || !dragStartRef.current) return;
+    const key = dateKey(day);
+    const start = dragStartRef.current;
+    // 计算范围内的所有日期
+    const allDates = getDatesInRange(start, key);
+    setSelectedDates(allDates);
+    if (allDates.length === 1) loadAvailability(allDates);
+  };
+
+  const handleDayUp = () => {
+    isDraggingRef.current = false;
+    dragStartRef.current = null;
+  };
+
+  // 切换时段 → 应用到所有选中日期
   const toggleHour = async (hour: number) => {
     const current = availability[hour] ?? true;
     const newVal = !current;
     setAvailability((prev) => ({ ...prev, [hour]: newVal }));
     setSaving(true);
 
-    await supabase.from('availability').upsert({
-      date: selectedDate,
+    const rows = selectedDates.map((date) => ({
+      date,
       hour,
       is_available: newVal,
-    }, { onConflict: 'date,hour' });
+    }));
 
+    await supabase.from('availability').upsert(rows, { onConflict: 'date,hour' });
     setSaving(false);
   };
 
@@ -66,13 +96,18 @@ export function DateAvailability() {
   };
 
   const isSel = (day: number): boolean => {
-    if (!selectedDate) return false;
-    const m = String(viewMonth + 1).padStart(2, '0');
-    const d = String(day).padStart(2, '0');
-    return selectedDate === `${viewYear}-${m}-${d}`;
+    return selectedDates.includes(dateKey(day));
   };
 
-  // 分组显示时段
+  // 显示选中的范围
+  const rangeLabel = () => {
+    if (selectedDates.length === 0) return null;
+    if (selectedDates.length === 1) return formatDateCN(selectedDates[0]);
+    const first = formatDateCN(selectedDates[0]);
+    const last = formatDateCN(selectedDates[selectedDates.length - 1]);
+    return `${first} ~ ${last}（${selectedDates.length}天）`;
+  };
+
   const hourGroups = [
     { label: '中午', hours: [12] },
     { label: '下午', hours: [13, 14, 15, 16, 17] },
@@ -81,11 +116,17 @@ export function DateAvailability() {
   ];
 
   return (
-    <div className="date-availability">
+    <div className="date-availability"
+      onMouseUp={handleDayUp}
+      onMouseLeave={handleDayUp}
+      onTouchEnd={handleDayUp}
+    >
       <h3>🕐 按日期管理时段</h3>
-      <p className="admin-hint">先点日历选日期，再开关那天的具体时段</p>
+      <p className="admin-hint">
+        在日历上<strong>按住拖拽</strong>选中连续日期，然后开关时段 → 同时应用到所有选中日期
+      </p>
 
-      {/* 迷你日历 */}
+      {/* 日历 */}
       <div className="da-calendar">
         <div className="calendar-header">
           <button className="calendar-nav" onClick={prevMonth}>‹</button>
@@ -108,11 +149,8 @@ export function DateAvailability() {
                 key={`d-${day}-${i}`}
                 className={`day-cell${disabled ? ' past' : ''}${td ? ' today' : ''}${sel ? ' selected' : ''}`}
                 disabled={disabled}
-                onClick={() => {
-                  const m = String(viewMonth + 1).padStart(2, '0');
-                  const d = String(day).padStart(2, '0');
-                  handleSelectDate(`${viewYear}-${m}-${d}`);
-                }}
+                onMouseDown={() => handleDayDown(day)}
+                onMouseEnter={() => handleDayEnter(day)}
               >{day}</button>
             );
           })}
@@ -120,9 +158,10 @@ export function DateAvailability() {
       </div>
 
       {/* 时段开关 */}
-      {selectedDate && (
+      {selectedDates.length > 0 && (
         <div className="da-slots">
-          <h4>{formatDateCN(selectedDate)}</h4>
+          <h4>{rangeLabel()}</h4>
+          <p className="admin-hint">下方的开关会应用到上面选中的所有日期</p>
           {hourGroups.map((g) => (
             <div key={g.label} className="da-group">
               <span className="da-group-label">{g.label}</span>
@@ -147,4 +186,22 @@ export function DateAvailability() {
       )}
     </div>
   );
+}
+
+/** 计算两个日期字符串之间的所有日期 */
+function getDatesInRange(a: string, b: string): string[] {
+  const d1 = new Date(a + 'T00:00:00');
+  const d2 = new Date(b + 'T00:00:00');
+  const start = d1 < d2 ? d1 : d2;
+  const end = d1 < d2 ? d2 : d1;
+  const dates: string[] = [];
+  const cur = new Date(start);
+  while (cur <= end) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
 }

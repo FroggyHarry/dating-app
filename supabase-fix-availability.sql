@@ -34,6 +34,12 @@ END $$;
 
 -- 4. 权限
 ALTER TABLE availability ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "anon_read_availability" ON availability FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "anon_insert_availability" ON availability FOR INSERT WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "anon_update_availability" ON availability FOR UPDATE USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_read_availability" ON availability;
+CREATE POLICY "anon_read_availability" ON availability FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_availability" ON availability;
+CREATE POLICY "anon_insert_availability" ON availability FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_update_availability" ON availability;
+CREATE POLICY "anon_update_availability" ON availability FOR UPDATE USING (true) WITH CHECK (true);
