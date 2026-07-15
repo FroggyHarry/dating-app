@@ -39,10 +39,10 @@ export function Confirmation({ dateDetails, onReset, onFrogTripleClick, isPendin
 
   return (
     <div className="confirmation phase-enter">
-      <FloatingHearts />
+      {CONFIG.showFloatingDecor && <FloatingHearts />}
 
       <div className="confirmation-card">
-        <div className="confetti-emoji">{isPending ? '⏳' : '🎉'}</div>
+        <div className="confetti-emoji">{isPending ? '⏳' : CONFIG.showFloatingDecor ? '🎉' : '✅'}</div>
 
         {isPending ? (
           <>
