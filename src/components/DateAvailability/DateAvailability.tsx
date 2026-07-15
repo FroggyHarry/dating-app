@@ -140,6 +140,32 @@ export function DateAvailability() {
     }
   };
 
+  // --- 触摸滑动支持 ---
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!draggingDate.current && !draggingHour.current) return;
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return;
+
+    // 日期拖拽中
+    if (draggingDate.current) {
+      const dayBtn = (el as HTMLElement).closest?.('[data-day]') as HTMLElement | null;
+      if (dayBtn) {
+        const day = parseInt(dayBtn.dataset.day || '', 10);
+        if (!isNaN(day)) onDayEnter(day);
+      }
+    }
+
+    // 时段拖拽中
+    if (draggingHour.current) {
+      const hourBtn = (el as HTMLElement).closest?.('[data-hour]') as HTMLElement | null;
+      if (hourBtn) {
+        const hour = parseInt(hourBtn.dataset.hour || '', 10);
+        if (!isNaN(hour)) onHourEnter(hour);
+      }
+    }
+  };
+
   const onGlobalUp = () => {
     draggingDate.current = false;
     draggingHour.current = false;
@@ -167,6 +193,7 @@ export function DateAvailability() {
       onMouseUp={onGlobalUp}
       onMouseLeave={onGlobalUp}
       onTouchEnd={onGlobalUp}
+      onTouchMove={onTouchMove}
     >
       <h3>🕐 按日期管理时段</h3>
       <p className="admin-hint">
@@ -192,10 +219,12 @@ export function DateAvailability() {
             return (
               <button
                 type="button" tabIndex={-1}
+                data-day={day}
                 key={`d-${day}-${i}`}
                 className={`day-cell${past ? ' past' : ''}${td ? ' today' : ''}${sel ? ' selected' : ''}`}
                 disabled={past}
                 onMouseDown={(e) => onDayDown(day, e)}
+                onTouchStart={(e) => { onDayDown(day, e as any); }}
                 onMouseEnter={() => onDayEnter(day)}
               >{day}</button>
             );
@@ -225,9 +254,11 @@ export function DateAvailability() {
                     return (
                       <button
                         type="button" tabIndex={-1}
+                        data-hour={h}
                         key={h}
                         className={cls}
                         onMouseDown={(e) => onHourDown(h, e)}
+                        onTouchStart={(e) => { onHourDown(h, e as any); }}
                         onMouseEnter={() => onHourEnter(h)}
                         disabled={state === 'mixed'}
                       >
