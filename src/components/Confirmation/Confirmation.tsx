@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { FloatingHearts } from '../FloatingHearts/FloatingHearts';
 import { ACTIVITIES, CUISINES } from '../../constants/activities';
 import { formatDateCN, formatTimeCN } from '../../utils/dateUtils';
@@ -7,10 +8,36 @@ import './Confirmation.css';
 interface ConfirmationProps {
   dateDetails: DateDetails;
   onReset: () => void;
+  onFrogTripleClick: () => void;
 }
 
-export function Confirmation({ dateDetails, onReset }: ConfirmationProps) {
+export function Confirmation({ dateDetails, onReset, onFrogTripleClick }: ConfirmationProps) {
   const { date, timeSlot, activity, food } = dateDetails;
+  const [clickCount, setClickCount] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleFrogClick = useCallback(() => {
+    const count = clickCount + 1;
+    setClickCount(count);
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    if (count >= 3) {
+      setClickCount(0);
+      onFrogTripleClick();
+      return;
+    }
+
+    timerRef.current = setTimeout(() => {
+      setClickCount(0);
+    }, 1500);
+  }, [clickCount, onFrogTripleClick]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const getLabel = (list: { key: string; label: string; emoji: string }[], key: string | null) => {
     if (!key) return '';
@@ -56,9 +83,15 @@ export function Confirmation({ dateDetails, onReset }: ConfirmationProps) {
         </div>
 
         <div className="confirmation-animals">
-          <span>🐸</span>
-          <span className="heart-between">💗</span>
           <span>🐕</span>
+          <span className="heart-between">💗</span>
+          <span
+            className="frog-clickable"
+            onClick={handleFrogClick}
+            title={clickCount > 0 ? `再点 ${3 - clickCount} 次...` : undefined}
+          >
+            🐸
+          </span>
         </div>
 
         <button className="btn-primary reset-btn" onClick={onReset}>

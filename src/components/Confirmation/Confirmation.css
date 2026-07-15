@@ -87,6 +87,20 @@
   font-size: 2rem;
 }
 
+.frog-clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s;
+}
+
+.frog-clickable:hover {
+  transform: scale(1.15);
+}
+
+.frog-clickable:active {
+  transform: scale(0.9);
+}
+
 .heart-between {
   animation: heartbeat 1.5s ease-in-out infinite;
   font-size: 1.5rem;

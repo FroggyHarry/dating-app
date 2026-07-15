@@ -6,6 +6,12 @@
   width: 100%;
 }
 
+.time-loading {
+  text-align: center;
+  color: var(--color-text-light);
+  padding: 20px 0;
+}
+
 .time-picker-title {
   font-size: 1rem;
   font-weight: 600;

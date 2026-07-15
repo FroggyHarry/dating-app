@@ -3,6 +3,9 @@ import { InvitationPopup } from './components/InvitationPopup/InvitationPopup';
 import { IntermediatePage } from './components/IntermediatePage/IntermediatePage';
 import { DateScheduler } from './components/DateScheduler/DateScheduler';
 import { Confirmation } from './components/Confirmation/Confirmation';
+import { AdminPanel } from './components/AdminPanel/AdminPanel';
+import { useAppointments } from './hooks/useAppointments';
+import { useAdmin } from './hooks/useAdmin';
 import type { AppPhase, DateDetails } from './types';
 import './App.css';
 
@@ -14,14 +17,13 @@ function App() {
     activity: null,
     food: null,
   });
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  const handleAccept = useCallback(() => {
-    setPhase('intermediate');
-  }, []);
+  const { isAdmin } = useAdmin();
+  const { addAppointment } = useAppointments();
 
-  const handleIntermediateNext = useCallback(() => {
-    setPhase('scheduling');
-  }, []);
+  const handleAccept = useCallback(() => setPhase('intermediate'), []);
+  const handleIntermediateNext = useCallback(() => setPhase('scheduling'), []);
 
   const handleUpdateDate = useCallback((date: string) => {
     setDateDetails((prev) => ({ ...prev, date }));
@@ -39,14 +41,35 @@ function App() {
     setDateDetails((prev) => ({ ...prev, food }));
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
+    const { date, timeSlot, activity, food } = dateDetails;
+    if (date && timeSlot && activity && food) {
+      await addAppointment(date, timeSlot, activity, food);
+    }
     setPhase('confirmed');
-  }, []);
+  }, [dateDetails, addAppointment]);
 
   const handleReset = useCallback(() => {
     setPhase('scheduling');
     setDateDetails({ date: null, timeSlot: null, activity: null, food: null });
   }, []);
+
+  const handleFrogTripleClick = useCallback(() => {
+    setShowAdminLogin(true);
+  }, []);
+
+  const handleCloseAdminLogin = useCallback(() => {
+    setShowAdminLogin(false);
+  }, []);
+
+  // 管理员模式下显示管理后台
+  if (isAdmin) {
+    return (
+      <div className="app-container">
+        <AdminPanel showLogin={showAdminLogin} onCloseLogin={handleCloseAdminLogin} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
@@ -73,7 +96,13 @@ function App() {
         <Confirmation
           dateDetails={dateDetails}
           onReset={handleReset}
+          onFrogTripleClick={handleFrogTripleClick}
         />
+      )}
+
+      {/* 未登录时也可以触发登录弹窗 */}
+      {showAdminLogin && !isAdmin && (
+        <AdminPanel showLogin={showAdminLogin} onCloseLogin={handleCloseAdminLogin} />
       )}
     </div>
   );

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from '../Calendar/Calendar';
 import { TimePicker } from '../TimePicker/TimePicker';
 import { ActivitySelector } from '../ActivitySelector/ActivitySelector';
-import { ACTIVITIES, CUISINES } from '../../constants/activities';
-import type { DateDetails } from '../../types';
+import { supabase } from '../../lib/supabase';
+import { toActivity, toCuisine } from '../../types';
+import type { DateDetails, Activity } from '../../types';
 import './DateScheduler.css';
 
 type Step = 1 | 2 | 3 | 4;
@@ -26,6 +27,26 @@ export function DateScheduler({
   onConfirm,
 }: DateSchedulerProps) {
   const [step, setStep] = useState<Step>(1);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [cuisines, setCuisines] = useState<Activity[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: acts } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('is_active', true)
+        .order('id');
+      const { data: cuis } = await supabase
+        .from('cuisines')
+        .select('*')
+        .eq('is_active', true)
+        .order('id');
+      if (acts) setActivities(acts.map(toActivity));
+      if (cuis) setCuisines(cuis.map(toCuisine));
+    };
+    load();
+  }, []);
 
   const canNext = () => {
     if (step === 1) return dateDetails.date !== null;
@@ -36,7 +57,6 @@ export function DateScheduler({
 
   return (
     <div className="date-scheduler phase-enter">
-      {/* 步骤指示器 */}
       <div className="step-indicator">
         <span className={`step-dot${step === 1 ? ' active' : ''}${dateDetails.date ? ' done' : ''}`}>1</span>
         <span className="step-line" />
@@ -51,7 +71,6 @@ export function DateScheduler({
         <span className="scheduler-banner">🐻 太棒了！让我们来安排约会吧 🐼</span>
       </div>
 
-      {/* 步骤内容 */}
       <div className="step-content">
         {step === 1 && (
           <div className="step-panel">
@@ -77,7 +96,7 @@ export function DateScheduler({
           <div className="step-panel">
             <h3 className="step-title">🎯 选择约会活动</h3>
             <ActivitySelector
-              activities={ACTIVITIES}
+              activities={activities}
               selected={dateDetails.activity}
               onSelect={onUpdateActivity}
               title="🎯 约会活动"
@@ -89,7 +108,7 @@ export function DateScheduler({
           <div className="step-panel">
             <h3 className="step-title">🍽️ 我们吃点什么？</h3>
             <ActivitySelector
-              activities={CUISINES}
+              activities={cuisines}
               selected={dateDetails.food}
               onSelect={onUpdateFood}
               title="🍽️ 我们吃点什么？"
@@ -98,7 +117,6 @@ export function DateScheduler({
         )}
       </div>
 
-      {/* 底部按钮 */}
       <div className="step-buttons">
         {step > 1 && (
           <button
