@@ -1,0 +1,60 @@
+.intermediate-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.intermediate-card {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.intermediate-emoji {
+  font-size: 4rem;
+  animation: cryShake 1.5s ease-in-out infinite;
+}
+
+@keyframes cryShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+.intermediate-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-pink-dark);
+  line-height: 1.4;
+}
+
+.intermediate-hint {
+  font-size: 0.85rem;
+  color: #b0a8a0;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .intermediate-card {
+    padding: 28px 20px;
+    gap: 12px;
+  }
+
+  .intermediate-title {
+    font-size: 1.3rem;
+  }
+
+  .intermediate-emoji {
+    font-size: 3rem;
+  }
+}

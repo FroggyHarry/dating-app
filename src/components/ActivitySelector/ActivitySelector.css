@@ -1,0 +1,62 @@
+.activity-selector {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  width: 100%;
+}
+
+.activity-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-pink-dark);
+  margin-bottom: 14px;
+}
+
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.activity-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  background: var(--color-white);
+  border: 2px solid #eee;
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.activity-card:hover {
+  border-color: var(--color-pink-light);
+  background: var(--color-pink-pale);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.activity-card.selected {
+  border-color: var(--color-pink-primary);
+  background: var(--color-pink-pale);
+  box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.2);
+}
+
+.activity-emoji {
+  font-size: 2rem;
+}
+
+.activity-label {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .activity-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

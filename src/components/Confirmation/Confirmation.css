@@ -1,0 +1,120 @@
+.confirmation {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.confirmation-card {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+}
+
+.confetti-emoji {
+  font-size: 3.5rem;
+  animation: confettiBounce 0.6s ease-out;
+}
+
+@keyframes confettiBounce {
+  0% { transform: scale(0) rotate(-20deg); }
+  60% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.confirmation-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-pink-dark);
+}
+
+.confirmation-image {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.confirmation-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-pink-pale);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.detail-text {
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.confirmation-message {
+  font-size: 1.1rem;
+  color: var(--color-pink-dark);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.confirmation-animals {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 2rem;
+}
+
+.heart-between {
+  animation: heartbeat 1.5s ease-in-out infinite;
+  font-size: 1.5rem;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.15); }
+  60% { transform: scale(1); }
+}
+
+.reset-btn {
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .confirmation-card {
+    padding: 24px 16px;
+    gap: 16px;
+  }
+
+  .confirmation-title {
+    font-size: 1.3rem;
+  }
+
+  .confetti-emoji {
+    font-size: 2.8rem;
+  }
+}

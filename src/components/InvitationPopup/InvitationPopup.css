@@ -1,0 +1,142 @@
+.invitation-popup {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* === 装饰小动物 === */
+.invitation-animals {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.animal {
+  font-size: 3rem;
+  animation: animalBounce 2s ease-in-out infinite;
+}
+
+.animal-left {
+  animation-delay: 0s;
+}
+
+.animal-right {
+  animation-delay: 0.5s;
+}
+
+@keyframes animalBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* === 主卡片 === */
+.invitation-card {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.invitation-emoji {
+  font-size: 4rem;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+}
+
+.invitation-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-pink-dark);
+  line-height: 1.4;
+}
+
+.invitation-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.invitation-hint {
+  font-size: 0.82rem;
+  color: #b0a8a0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* === 按钮行（愿意 + 不愿意并排） === */
+.invitation-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+}
+
+/* === 漂浮装饰 === */
+.floating-decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.decor {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: floatUp 4s ease-in-out infinite;
+}
+
+.decor-1 { left: 8%; bottom: -10%; animation-delay: 0s; }
+.decor-2 { left: 25%; bottom: -10%; animation-delay: 1s; }
+.decor-3 { right: 25%; bottom: -10%; animation-delay: 2s; }
+.decor-4 { right: 8%; bottom: -10%; animation-delay: 3s; }
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* === 响应式 === */
+@media (max-width: 480px) {
+  .invitation-card {
+    padding: 28px 20px;
+    gap: 12px;
+  }
+
+  .invitation-title {
+    font-size: 1.4rem;
+  }
+
+  .invitation-emoji {
+    font-size: 3rem;
+  }
+
+  .animal {
+    font-size: 2.2rem;
+  }
+}
