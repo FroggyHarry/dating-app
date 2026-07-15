@@ -4,46 +4,114 @@
 }
 
 .appt-card {
-  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
   border: 1px solid #f0e0e5;
   border-radius: 12px;
   margin-bottom: 10px;
   background: var(--color-pink-pale);
+  gap: 10px;
+}
+
+.appt-card-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .appt-date-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
 .appt-date {
   font-weight: 600;
   color: var(--color-text);
+  font-size: 0.95rem;
 }
 
 .appt-time {
   color: var(--color-pink-dark);
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .appt-tags {
   display: flex;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .appt-tag {
   padding: 2px 10px;
   background: var(--color-white);
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--color-text-light);
 }
 
+.appt-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .appt-created {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #c0b0b0;
+}
+
+.appt-location {
+  font-size: 0.72rem;
+  color: #b0a8a0;
+}
+
+.appt-delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.appt-delete-btn:hover {
+  opacity: 1;
+}
+
+.appt-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  flex-shrink: 0;
+}
+
+.btn-del-yes {
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: #e8587a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-del-no {
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: #ddd;
+  color: #666;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .appt-loading {
@@ -62,10 +130,4 @@
   font-size: 3rem;
   display: block;
   margin-bottom: 12px;
-}
-
-.appt-empty-hint {
-  font-size: 0.82rem;
-  color: #c0b0b0;
-  margin-top: 4px;
 }

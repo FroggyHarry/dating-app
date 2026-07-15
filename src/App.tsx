@@ -44,7 +44,19 @@ function App() {
   const handleConfirm = useCallback(async () => {
     const { date, timeSlot, activity, food } = dateDetails;
     if (date && timeSlot && activity && food) {
-      await addAppointment(date, timeSlot, activity, food);
+      // 获取 IP 和位置
+      let ip = '';
+      let loc = '';
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const geo = await res.json();
+          ip = geo.ip || '';
+          loc = geo.city ? `${geo.city}, ${geo.country_name}` : '';
+        }
+      } catch { /* 获取失败不影响预约 */ }
+
+      await addAppointment(date, timeSlot, activity, food, { ip, loc });
     }
     setPhase('confirmed');
   }, [dateDetails, addAppointment]);

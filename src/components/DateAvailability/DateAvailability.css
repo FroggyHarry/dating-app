@@ -1,0 +1,75 @@
+.date-availability h3 {
+  color: var(--color-pink-dark);
+  margin-bottom: 4px;
+}
+
+.da-calendar {
+  margin: 14px 0;
+  background: var(--color-pink-pale);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+
+/* 复用 Calendar 的日期样式 */
+.da-calendar .calendar-header,
+.da-calendar .calendar-weekdays,
+.da-calendar .calendar-grid {
+  /* 样式来自 Calendar.css */
+}
+
+.da-slots {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--color-pink-pale);
+  border-radius: var(--radius-card);
+}
+
+.da-slots h4 {
+  color: var(--color-pink-dark);
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.da-group {
+  margin-bottom: 10px;
+}
+
+.da-group-label {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.da-hour-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.da-hour-btn {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.da-hour-btn.on {
+  background: var(--color-pink-primary);
+  color: white;
+  border-color: var(--color-pink-primary);
+}
+
+.da-hour-btn.off {
+  background: var(--color-white);
+  color: #bbb;
+  border-color: #eee;
+}
+
+.da-hour-btn:hover {
+  transform: scale(1.04);
+}

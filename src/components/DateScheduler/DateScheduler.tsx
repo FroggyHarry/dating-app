@@ -86,6 +86,7 @@ export function DateScheduler({
           <div className="step-panel">
             <h3 className="step-title">⏰ 选择约会时间</h3>
             <TimePicker
+              selectedDate={dateDetails.date}
               selectedTime={dateDetails.timeSlot}
               onSelectTime={onUpdateTime}
             />

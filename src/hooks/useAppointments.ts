@@ -18,12 +18,14 @@ export function useAppointments() {
   useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
   const addAppointment = useCallback(
-    async (date: string, time_slot: string, activity: string, cuisine: string) => {
+    async (date: string, time_slot: string, activity: string, cuisine: string, meta?: { ip?: string; loc?: string }) => {
       const { error } = await supabase.from('appointments').insert({
         date,
         time_slot,
         activity,
         cuisine,
+        ip_address: meta?.ip || null,
+        location: meta?.loc || null,
       });
       if (!error) {
         await fetchAppointments();
@@ -34,5 +36,10 @@ export function useAppointments() {
     [fetchAppointments]
   );
 
-  return { appointments, loading, addAppointment, refresh: fetchAppointments };
+  const deleteAppointment = useCallback(async (id: number) => {
+    await supabase.from('appointments').delete().eq('id', id);
+    setAppointments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
+  return { appointments, loading, addAppointment, deleteAppointment, refresh: fetchAppointments };
 }
