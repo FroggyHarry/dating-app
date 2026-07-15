@@ -26,6 +26,7 @@ interface ModeConfig {
   showAdminEntry: boolean;
   requireName: boolean;
   requireApproval: boolean;
+  hasActivities: boolean;
   // 确认后文案
   afterConfirmTitle: string;
   afterConfirmMsg: string;
@@ -52,6 +53,7 @@ const elvaConfig: ModeConfig = {
   showAdminEntry: true,
   requireName: false,
   requireApproval: false,
+  hasActivities: true,
   afterConfirmTitle: '',
   afterConfirmMsg: '',
 };
@@ -77,6 +79,7 @@ const friendConfig: ModeConfig = {
   showAdminEntry: false,
   requireName: true,
   requireApproval: true,
+  hasActivities: false,
   afterConfirmTitle: '预约已提交',
   afterConfirmMsg: '等待对方确认，确认后我们会通知你',
 };

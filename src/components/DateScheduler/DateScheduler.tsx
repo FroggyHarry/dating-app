@@ -31,41 +31,37 @@ export function DateScheduler({
   onUpdateFood,
   onConfirm,
 }: DateSchedulerProps) {
-  const startStep = CONFIG.requireName ? 1 : 1;
-  const nameStep = CONFIG.requireName ? 1 : 0;
-  const dateStep = CONFIG.requireName ? 2 : 1;
-  const timeStep = CONFIG.requireName ? 3 : 2;
-  const actStep = CONFIG.requireName ? 4 : 3;
-  const foodStep = CONFIG.requireName ? 5 : 4;
+  const hasName = CONFIG.requireName;
+  const hasActs = CONFIG.hasActivities;
 
-  const [step, setStep] = useState<Step>(startStep as Step);
+  const nameStep = hasName ? 1 : 0;
+  const dateStep = hasName ? 2 : 1;
+  const timeStep = hasName ? 3 : 2;
+  const actStep = hasActs ? (hasName ? 4 : 3) : 0;
+  const foodStep = hasActs ? (hasName ? 5 : 4) : 0;
+  const lastStep = foodStep || timeStep;
+
+  const [step, setStep] = useState<Step>(hasName ? 1 as Step : 1 as Step);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [cuisines, setCuisines] = useState<Activity[]>([]);
 
   useEffect(() => {
+    if (!hasActs) return;
     const load = async () => {
-      const { data: acts } = await supabase
-        .from('activities')
-        .select('*')
-        .eq('is_active', true)
-        .order('id');
-      const { data: cuis } = await supabase
-        .from('cuisines')
-        .select('*')
-        .eq('is_active', true)
-        .order('id');
+      const { data: acts } = await supabase.from('activities').select('*').eq('is_active', true).order('id');
+      const { data: cuis } = await supabase.from('cuisines').select('*').eq('is_active', true).order('id');
       if (acts) setActivities(acts.map(toActivity));
       if (cuis) setCuisines(cuis.map(toCuisine));
     };
     load();
-  }, []);
+  }, [hasActs]);
 
   const canNext = () => {
-    if (step === nameStep) return guestName.trim() !== '';
+    if (step === nameStep && hasName) return guestName.trim() !== '';
     if (step === dateStep) return dateDetails.date !== null;
     if (step === timeStep) return dateDetails.timeSlot !== null;
-    if (step === actStep) return dateDetails.activity !== null;
-    if (step === foodStep) return dateDetails.food !== null;
+    if (step === actStep && hasActs) return dateDetails.activity !== null;
+    if (step === foodStep && hasActs) return dateDetails.food !== null;
   };
 
   return (
@@ -137,11 +133,11 @@ export function DateScheduler({
       </div>
 
       <div className="step-buttons">
-        {step > startStep && (
+        {step > (hasName ? 1 : 1) && (
           <button className="btn-secondary" onClick={() => setStep((s) => (s - 1) as Step)}>← 上一步</button>
         )}
 
-        {step < foodStep ? (
+        {step < lastStep ? (
           <button className="btn-primary" disabled={!canNext()} onClick={() => setStep((s) => (s + 1) as Step)}>
             下一步 →
           </button>
