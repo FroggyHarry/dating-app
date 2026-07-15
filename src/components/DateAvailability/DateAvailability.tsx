@@ -143,6 +143,7 @@ export function DateAvailability() {
   // --- 触摸滑动支持 ---
   const onTouchMove = (e: React.TouchEvent) => {
     if (!draggingDate.current && !draggingHour.current) return;
+    e.preventDefault(); // 阻止页面滚动
     const touch = e.touches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!el) return;

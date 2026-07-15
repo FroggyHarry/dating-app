@@ -12,6 +12,11 @@
   background: var(--color-pink-pale);
   border-radius: var(--radius-card);
   padding: 16px;
+  touch-action: none;
+}
+
+.da-hour-grid {
+  touch-action: none;
 }
 
 /* 复用 Calendar 的日期样式 */
