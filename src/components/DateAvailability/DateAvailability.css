@@ -1,3 +1,7 @@
+.date-availability {
+  overflow-anchor: none;
+}
+
 .date-availability h3 {
   color: var(--color-pink-dark);
   margin-bottom: 4px;

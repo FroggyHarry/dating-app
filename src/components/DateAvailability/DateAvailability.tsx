@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getMonthGrid, isToday, isPast, WEEKDAYS, formatDateCN } from '../../utils/dateUtils';
 import './DateAvailability.css';
@@ -16,12 +16,16 @@ export function DateAvailability() {
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [allData, setAllData] = useState<Record<string, Record<number, boolean>>>({}); // date -> { hour: bool }
-  const [saving, setSaving] = useState(false);
+  const [allData, setAllData] = useState<Record<string, Record<number, boolean>>>({});
 
-  const dragStartRef = useRef<string | null>(null);
-  const isDraggingRef = useRef(false);
-  const dragModeRef = useRef<'add' | 'remove'>('add');
+  // 日期拖拽
+  const dragDateStart = useRef<string | null>(null);
+  const draggingDate = useRef(false);
+  const dragDateMode = useRef<'add' | 'remove'>('add');
+
+  // 时段拖拽
+  const draggingHour = useRef(false);
+  const dragHourMode = useRef<boolean | null>(null); // true=开, false=关
 
   const grid = getMonthGrid(viewYear, viewMonth);
 
@@ -31,42 +35,29 @@ export function DateAvailability() {
     return `${viewYear}-${m}-${d}`;
   };
 
-  // 加载某日期的数据（如果内存中没有才从DB取）
   const ensureLoaded = async (dates: string[]) => {
     const toLoad = dates.filter((d) => !allData[d]);
     if (toLoad.length === 0) return;
-
-    const { data } = await supabase
-      .from('availability')
-      .select('*')
-      .in('date', toLoad)
-      .order('hour');
-
+    const { data } = await supabase.from('availability').select('*').in('date', toLoad).order('hour');
     const patch: Record<string, Record<number, boolean>> = {};
     for (const d of toLoad) patch[d] = {};
-    if (data) {
-      for (const r of data) {
-        if (!patch[r.date]) patch[r.date] = {};
-        patch[r.date][r.hour] = r.is_available;
-      }
+    if (data) for (const r of data) {
+      if (!patch[r.date]) patch[r.date] = {};
+      patch[r.date][r.hour] = r.is_available;
     }
     setAllData((prev) => {
       const next = { ...prev };
-      for (const d of toLoad) {
-        next[d] = patch[d];
-      }
+      for (const d of toLoad) next[d] = patch[d];
       return next;
     });
   };
 
-  // 计算多选日期每个小时的聚合状态
   const getAggregated = (): Record<number, 'all-on' | 'all-off' | 'mixed'> => {
     const result: Record<number, 'all-on' | 'all-off' | 'mixed'> = {};
     for (const h of ALL_HOURS) {
       let hasOn = false, hasOff = false;
       for (const d of selectedDates) {
-        const val = allData[d]?.[h];
-        if (val === true) hasOn = true;
+        if (allData[d]?.[h] === true) hasOn = true;
         else hasOff = true;
       }
       if (hasOn && !hasOff) result[h] = 'all-on';
@@ -78,83 +69,93 @@ export function DateAvailability() {
 
   const aggregated = getAggregated();
 
-  // 切换时段 → 对所有选中日期翻转
-  const toggleHour = async (hour: number) => {
-    const current = aggregated[hour];
-    if (current === 'mixed') return; // 混合状态不操作
-
-    const newVal = current !== 'all-on'; // all-on → false, all-off → true
-    setSaving(true);
-
-    // 更新内存
+  const applyHourChange = useCallback(async (hour: number, newVal: boolean) => {
     setAllData((prev) => {
       const next = { ...prev };
-      for (const d of selectedDates) {
-        next[d] = { ...(next[d] || {}), [hour]: newVal };
-      }
+      for (const d of selectedDates) next[d] = { ...(next[d] || {}), [hour]: newVal };
       return next;
     });
-
-    // 保存到DB
     const rows = selectedDates.map((date) => ({ date, hour, is_available: newVal }));
     await supabase.from('availability').upsert(rows, { onConflict: 'date,hour' });
-    setSaving(false);
-  };
+  }, [selectedDates]);
 
-  // 处理日期选择
-  const handleDayDown = (day: number) => {
+  // --- 日期选择 ---
+  const onDayDown = (day: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).blur();
     const key = dateKey(day);
     const mode: 'add' | 'remove' = selectedDates.includes(key) ? 'remove' : 'add';
-    dragModeRef.current = mode;
-    dragStartRef.current = key;
-    isDraggingRef.current = true;
+    dragDateMode.current = mode;
+    dragDateStart.current = key;
+    draggingDate.current = true;
 
     if (mode === 'add') {
       const next = selectedDates.includes(key) ? selectedDates : [...selectedDates, key].sort();
       setSelectedDates(next);
       ensureLoaded(next);
     } else {
-      const next = selectedDates.filter((d) => d !== key);
-      setSelectedDates(next);
+      setSelectedDates((prev) => prev.filter((d) => d !== key));
     }
   };
 
-  const handleDayEnter = (day: number) => {
-    if (!isDraggingRef.current) return;
+  const onDayEnter = (day: number) => {
+    if (!draggingDate.current) return;
     const key = dateKey(day);
-    const start = dragStartRef.current!;
-    const range = getDatesInRange(start, key);
-    const mode = dragModeRef.current;
-
-    if (mode === 'add') {
-      const set = new Set(selectedDates);
-      range.forEach((d) => set.add(d));
-      const next = Array.from(set).sort();
-      setSelectedDates(next);
-      ensureLoaded(next);
+    const range = getDatesInRange(dragDateStart.current!, key);
+    if (dragDateMode.current === 'add') {
+      setSelectedDates((prev) => {
+        const set = new Set(prev);
+        range.forEach((d) => set.add(d));
+        const next = Array.from(set).sort();
+        ensureLoaded(next);
+        return next;
+      });
     } else {
-      const removeSet = new Set(range);
-      const next = selectedDates.filter((d) => !removeSet.has(d));
-      setSelectedDates(next);
+      setSelectedDates((prev) => {
+        const removeSet = new Set(range);
+        return prev.filter((d) => !removeSet.has(d));
+      });
     }
   };
 
-  const handleDayUp = () => {
-    isDraggingRef.current = false;
+  // --- 时段拖拽选择 ---
+  const onHourDown = (hour: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).blur();
+    const state = aggregated[hour];
+    if (state === 'mixed') return;
+    const newVal = state !== 'all-on'; // on→off, off→on
+    dragHourMode.current = newVal;
+    draggingHour.current = true;
+    applyHourChange(hour, newVal);
+  };
+
+  const onHourEnter = (hour: number) => {
+    if (!draggingHour.current || dragHourMode.current === null) return;
+    const state = aggregated[hour];
+    if (state === 'mixed') return;
+    const cur = state === 'all-on';
+    if (cur !== dragHourMode.current) {
+      applyHourChange(hour, dragHourMode.current);
+    }
+  };
+
+  const onGlobalUp = () => {
+    draggingDate.current = false;
+    draggingHour.current = false;
+    dragHourMode.current = null;
   };
 
   const prevMonth = () => {
     if (viewMonth === 0) { setViewYear(viewYear - 1); setViewMonth(11); }
     else setViewMonth(viewMonth - 1);
   };
-
   const nextMonth = () => {
     if (viewMonth === 11) { setViewYear(viewYear + 1); setViewMonth(0); }
     else setViewMonth(viewMonth + 1);
   };
 
   const isSel = (day: number) => selectedDates.includes(dateKey(day));
-
   const rangeLabel = () => {
     if (selectedDates.length === 0) return null;
     if (selectedDates.length === 1) return formatDateCN(selectedDates[0]);
@@ -163,21 +164,21 @@ export function DateAvailability() {
 
   return (
     <div className="date-availability"
-      onMouseUp={handleDayUp}
-      onMouseLeave={handleDayUp}
-      onTouchEnd={handleDayUp}
+      onMouseUp={onGlobalUp}
+      onMouseLeave={onGlobalUp}
+      onTouchEnd={onGlobalUp}
     >
       <h3>🕐 按日期管理时段</h3>
       <p className="admin-hint">
-        拖拽选中日期 → 点击时段开关 → 同时应用到所有选中日期
+        拖拽选中日期 → 拖拽切换时段 → 同时应用到所有选中日期
       </p>
 
       {/* 日历 */}
       <div className="da-calendar" onMouseDown={(e) => e.preventDefault()}>
         <div className="calendar-header">
-          <button type="button" className="calendar-nav" onClick={prevMonth}>‹</button>
+          <button type="button" className="calendar-nav" onClick={prevMonth} tabIndex={-1}>‹</button>
           <span className="calendar-month">{viewYear}年 {viewMonth + 1}月</span>
-          <button type="button" className="calendar-nav" onClick={nextMonth}>›</button>
+          <button type="button" className="calendar-nav" onClick={nextMonth} tabIndex={-1}>›</button>
         </div>
         <div className="calendar-weekdays">
           {WEEKDAYS.map((w) => <span key={w} className="weekday">{w}</span>)}
@@ -190,12 +191,12 @@ export function DateAvailability() {
             const sel = isSel(day);
             return (
               <button
-                type="button"
+                type="button" tabIndex={-1}
                 key={`d-${day}-${i}`}
                 className={`day-cell${past ? ' past' : ''}${td ? ' today' : ''}${sel ? ' selected' : ''}`}
                 disabled={past}
-                onMouseDown={() => handleDayDown(day)}
-                onMouseEnter={() => handleDayEnter(day)}
+                onMouseDown={(e) => onDayDown(day, e)}
+                onMouseEnter={() => onDayEnter(day)}
               >{day}</button>
             );
           })}
@@ -209,7 +210,7 @@ export function DateAvailability() {
           {HOUR_GROUPS.map((g) => (
             <div key={g.label} className="da-group">
               <span className="da-group-label">{g.label}</span>
-              <div className="da-hour-grid">
+              <div className="da-hour-grid" onMouseDown={(e) => e.preventDefault()}>
                 {g.hours.map((h) => {
                   const state = aggregated[h];
                   let cls = 'da-hour-btn';
@@ -220,11 +221,12 @@ export function DateAvailability() {
 
                   return (
                     <button
-                      type="button"
+                      type="button" tabIndex={-1}
                       key={h}
                       className={cls}
-                      onClick={() => toggleHour(h)}
-                      disabled={saving || state === 'mixed'}
+                      onMouseDown={(e) => onHourDown(h, e)}
+                      onMouseEnter={() => onHourEnter(h)}
+                      disabled={state === 'mixed'}
                     >
                       {label}
                     </button>
