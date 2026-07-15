@@ -18,16 +18,26 @@ export function useAppointments() {
   useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
   const addAppointment = useCallback(
-    async (date: string, time_slot: string, activity: string, cuisine: string, meta?: { loc?: string }) => {
+    async (params: {
+      date: string; time_slot: string; activity: string; cuisine: string;
+      source: string; guest_name?: string; status: string; loc?: string;
+    }) => {
       const { error } = await supabase.from('appointments').insert({
-        date,
-        time_slot,
-        activity,
-        cuisine,
-        location: meta?.loc || null,
+        date: params.date,
+        time_slot: params.time_slot,
+        activity: params.activity,
+        cuisine: params.cuisine,
+        source: params.source,
+        guest_name: params.guest_name || null,
+        status: params.status,
+        location: params.loc || null,
       });
       if (!error) {
         await fetchAppointments();
+        // 如果已确认，阻断3小时
+        if (params.status === 'confirmed') {
+          blockHours(params.date, parseInt(params.time_slot));
+        }
         return true;
       }
       return false;
@@ -40,5 +50,34 @@ export function useAppointments() {
     setAppointments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  return { appointments, loading, addAppointment, deleteAppointment, refresh: fetchAppointments };
+  const approveAppointment = useCallback(async (id: number) => {
+    const appt = appointments.find((a) => a.id === id);
+    if (!appt) return;
+    await supabase.from('appointments').update({ status: 'confirmed' }).eq('id', id);
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: 'confirmed' } : a))
+    );
+    // 确认后阻断3小时
+    blockHours(appt.date, parseInt(appt.time_slot));
+  }, [appointments]);
+
+  const rejectAppointment = useCallback(async (id: number) => {
+    await supabase.from('appointments').update({ status: 'rejected' }).eq('id', id);
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: 'rejected' } : a))
+    );
+  }, []);
+
+  return { appointments, loading, addAppointment, deleteAppointment, approveAppointment, rejectAppointment, refresh: fetchAppointments };
+}
+
+/** 阻断某日期的 hour + 接下来2小时 */
+async function blockHours(date: string, hour: number) {
+  for (let h = hour; h < hour + 3; h++) {
+    await supabase.from('availability').upsert({
+      date,
+      hour: h % 24,
+      is_available: false,
+    }, { onConflict: 'date,hour' });
+  }
 }

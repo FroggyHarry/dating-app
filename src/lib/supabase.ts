@@ -38,5 +38,8 @@ export interface DbAppointment {
   cuisine: string;
   ip_address: string | null;
   location: string | null;
+  source: string | null;
+  guest_name: string | null;
+  status: string | null;
   created_at: string;
 }

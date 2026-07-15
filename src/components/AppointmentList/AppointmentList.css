@@ -32,6 +32,46 @@
   font-size: 0.95rem;
 }
 
+.badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.badge-confirmed { background: #e8f5e9; color: #388e3c; }
+.badge-pending { background: #fff3e0; color: #f57c00; }
+.badge-rejected { background: #fce4ec; color: #c62828; }
+
+.appt-guest {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  margin-bottom: 2px;
+}
+
+.appt-source {
+  font-size: 0.75rem;
+  border: 1px dashed #ddd;
+}
+
+.appt-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-approve, .btn-reject {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px;
+  transition: transform 0.15s;
+}
+
+.btn-approve:hover { transform: scale(1.2); }
+.btn-reject:hover { transform: scale(1.2); }
+
 .appt-time {
   color: var(--color-pink-dark);
   font-weight: 600;

@@ -16,7 +16,7 @@ interface AdminPanelProps {
 
 export function AdminPanel({ showLogin, onCloseLogin }: AdminPanelProps) {
   const { isAdmin, login, logout } = useAdmin();
-  const { appointments, loading: apptsLoading, deleteAppointment } = useAppointments();
+  const { appointments, loading: apptsLoading, deleteAppointment, approveAppointment, rejectAppointment } = useAppointments();
   const [tab, setTab] = useState<AdminTab>('appointments');
 
   const [activities, setActivities] = useState<{ id: number; key: string; label: string; emoji: string; is_active: boolean }[]>([]);
@@ -73,6 +73,8 @@ export function AdminPanel({ showLogin, onCloseLogin }: AdminPanelProps) {
                 appointments={appointments}
                 loading={apptsLoading}
                 onDelete={deleteAppointment}
+                onApprove={approveAppointment}
+                onReject={rejectAppointment}
               />
             )}
 

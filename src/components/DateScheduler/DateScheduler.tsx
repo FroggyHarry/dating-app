@@ -3,14 +3,17 @@ import { Calendar } from '../Calendar/Calendar';
 import { TimePicker } from '../TimePicker/TimePicker';
 import { ActivitySelector } from '../ActivitySelector/ActivitySelector';
 import { supabase } from '../../lib/supabase';
+import { CONFIG } from '../../config';
 import { toActivity, toCuisine } from '../../types';
 import type { DateDetails, Activity } from '../../types';
 import './DateScheduler.css';
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 interface DateSchedulerProps {
   dateDetails: DateDetails;
+  guestName: string;
+  onUpdateName: (name: string) => void;
   onUpdateDate: (date: string) => void;
   onUpdateTime: (time: string) => void;
   onUpdateActivity: (activity: string) => void;
@@ -20,13 +23,22 @@ interface DateSchedulerProps {
 
 export function DateScheduler({
   dateDetails,
+  guestName,
+  onUpdateName,
   onUpdateDate,
   onUpdateTime,
   onUpdateActivity,
   onUpdateFood,
   onConfirm,
 }: DateSchedulerProps) {
-  const [step, setStep] = useState<Step>(1);
+  const startStep = CONFIG.requireName ? 1 : 1;
+  const nameStep = CONFIG.requireName ? 1 : 0;
+  const dateStep = CONFIG.requireName ? 2 : 1;
+  const timeStep = CONFIG.requireName ? 3 : 2;
+  const actStep = CONFIG.requireName ? 4 : 3;
+  const foodStep = CONFIG.requireName ? 5 : 4;
+
+  const [step, setStep] = useState<Step>(startStep as Step);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [cuisines, setCuisines] = useState<Activity[]>([]);
 
@@ -49,100 +61,93 @@ export function DateScheduler({
   }, []);
 
   const canNext = () => {
-    if (step === 1) return dateDetails.date !== null;
-    if (step === 2) return dateDetails.timeSlot !== null;
-    if (step === 3) return dateDetails.activity !== null;
-    if (step === 4) return dateDetails.food !== null;
+    if (step === nameStep) return guestName.trim() !== '';
+    if (step === dateStep) return dateDetails.date !== null;
+    if (step === timeStep) return dateDetails.timeSlot !== null;
+    if (step === actStep) return dateDetails.activity !== null;
+    if (step === foodStep) return dateDetails.food !== null;
   };
 
   return (
     <div className="date-scheduler phase-enter">
       <div className="step-indicator">
-        <span className={`step-dot${step === 1 ? ' active' : ''}${dateDetails.date ? ' done' : ''}`}>1</span>
+        {CONFIG.requireName && (
+          <>
+            <span className={`step-dot${step === nameStep ? ' active' : ''}${guestName.trim() ? ' done' : ''}`}>1</span>
+            <span className="step-line" />
+          </>
+        )}
+        <span className={`step-dot${step === dateStep ? ' active' : ''}${dateDetails.date ? ' done' : ''}`}>{CONFIG.requireName ? 2 : 1}</span>
         <span className="step-line" />
-        <span className={`step-dot${step === 2 ? ' active' : ''}${dateDetails.timeSlot ? ' done' : ''}`}>2</span>
+        <span className={`step-dot${step === timeStep ? ' active' : ''}${dateDetails.timeSlot ? ' done' : ''}`}>{CONFIG.requireName ? 3 : 2}</span>
         <span className="step-line" />
-        <span className={`step-dot${step === 3 ? ' active' : ''}${dateDetails.activity ? ' done' : ''}`}>3</span>
+        <span className={`step-dot${step === actStep ? ' active' : ''}${dateDetails.activity ? ' done' : ''}`}>{CONFIG.requireName ? 4 : 3}</span>
         <span className="step-line" />
-        <span className={`step-dot${step === 4 ? ' active' : ''}${dateDetails.food ? ' done' : ''}`}>4</span>
+        <span className={`step-dot${step === foodStep ? ' active' : ''}${dateDetails.food ? ' done' : ''}`}>{CONFIG.requireName ? 5 : 4}</span>
       </div>
 
       <div className="scheduler-header">
-        <span className="scheduler-banner">🐻 太棒了！让我们来安排约会吧 🐼</span>
+        <span className="scheduler-banner">
+          {CONFIG.showAnimals ? '🐻 太棒了！让我们来安排约会吧 🐼' : '请填写以下信息'}
+        </span>
       </div>
 
       <div className="step-content">
-        {step === 1 && (
+        {step === nameStep && CONFIG.requireName && (
           <div className="step-panel">
-            <h3 className="step-title">📅 选择约会日期</h3>
-            <Calendar
-              selectedDate={dateDetails.date}
-              onSelectDate={onUpdateDate}
+            <h3 className="step-title">👤 你的姓名</h3>
+            <input
+              className="name-input"
+              type="text"
+              placeholder="请输入你的姓名"
+              value={guestName}
+              onChange={(e) => onUpdateName(e.target.value)}
+              autoFocus
             />
           </div>
         )}
 
-        {step === 2 && (
+        {step === dateStep && (
           <div className="step-panel">
-            <h3 className="step-title">⏰ 选择约会时间</h3>
-            <TimePicker
-              selectedDate={dateDetails.date}
-              selectedTime={dateDetails.timeSlot}
-              onSelectTime={onUpdateTime}
-            />
+            <h3 className="step-title">📅 选择日期</h3>
+            <Calendar selectedDate={dateDetails.date} onSelectDate={onUpdateDate} />
           </div>
         )}
 
-        {step === 3 && (
+        {step === timeStep && (
           <div className="step-panel">
-            <h3 className="step-title">🎯 选择约会活动</h3>
-            <ActivitySelector
-              activities={activities}
-              selected={dateDetails.activity}
-              onSelect={onUpdateActivity}
-              title="🎯 约会活动"
-            />
+            <h3 className="step-title">⏰ 选择时间</h3>
+            <TimePicker selectedDate={dateDetails.date} selectedTime={dateDetails.timeSlot} onSelectTime={onUpdateTime} />
           </div>
         )}
 
-        {step === 4 && (
+        {step === actStep && (
           <div className="step-panel">
-            <h3 className="step-title">🍽️ 我们吃点什么？</h3>
-            <ActivitySelector
-              activities={cuisines}
-              selected={dateDetails.food}
-              onSelect={onUpdateFood}
-              title="🍽️ 我们吃点什么？"
-            />
+            <h3 className="step-title">🎯 选择活动</h3>
+            <ActivitySelector activities={activities} selected={dateDetails.activity} onSelect={onUpdateActivity} title="🎯 活动" />
+          </div>
+        )}
+
+        {step === foodStep && (
+          <div className="step-panel">
+            <h3 className="step-title">🍽️ 选择菜系</h3>
+            <ActivitySelector activities={cuisines} selected={dateDetails.food} onSelect={onUpdateFood} title="🍽️ 菜系" />
           </div>
         )}
       </div>
 
       <div className="step-buttons">
-        {step > 1 && (
-          <button
-            className="btn-secondary"
-            onClick={() => setStep((s) => (s - 1) as Step)}
-          >
-            ← 上一步
-          </button>
+        {step > startStep && (
+          <button className="btn-secondary" onClick={() => setStep((s) => (s - 1) as Step)}>← 上一步</button>
         )}
 
-        {step < 4 ? (
-          <button
-            className="btn-primary"
-            disabled={!canNext()}
-            onClick={() => setStep((s) => (s + 1) as Step)}
-          >
+        {step < foodStep ? (
+          <button className="btn-primary" disabled={!canNext()} onClick={() => setStep((s) => (s + 1) as Step)}>
             下一步 →
           </button>
         ) : (
-          <button
-            className="btn-primary"
-            disabled={!canNext()}
-            onClick={onConfirm}
-          >
-            💌 确认约会
+          <button className="btn-primary" disabled={!canNext()} onClick={onConfirm}>
+            {CONFIG.requireApproval ? '📩 提交预约' : '💌 确认约会'}
           </button>
         )}
       </div>

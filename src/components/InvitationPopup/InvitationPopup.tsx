@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { EvadingButton } from '../EvadingButton/EvadingButton';
+import { CONFIG } from '../../config';
 import './InvitationPopup.css';
 
 interface InvitationPopupProps {
@@ -12,16 +13,11 @@ export function InvitationPopup({ onAccept, onSecretClick }: InvitationPopupProp
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleEmojiClick = useCallback(() => {
+    if (!CONFIG.showAdminEntry) return;
     const count = clickCount + 1;
     setClickCount(count);
     if (timerRef.current) clearTimeout(timerRef.current);
-
-    if (count >= 3) {
-      setClickCount(0);
-      onSecretClick();
-      return;
-    }
-
+    if (count >= 3) { setClickCount(0); onSecretClick(); return; }
     timerRef.current = setTimeout(() => setClickCount(0), 1500);
   }, [clickCount, onSecretClick]);
 
@@ -31,32 +27,36 @@ export function InvitationPopup({ onAccept, onSecretClick }: InvitationPopupProp
 
   return (
     <div className="invitation-popup phase-enter">
-      <div className="invitation-animals">
-        <span className="animal animal-left">🐕</span>
-        <span className="animal animal-right">🐱</span>
-      </div>
+      {CONFIG.showAnimals && (
+        <div className="invitation-animals">
+          <span className="animal animal-left">🐕</span>
+          <span className="animal animal-right">🐱</span>
+        </div>
+      )}
 
-      <div className="floating-decor">
-        <span className="decor decor-1">💕</span>
-        <span className="decor decor-2">✨</span>
-        <span className="decor decor-3">🌸</span>
-        <span className="decor decor-4">💖</span>
-      </div>
+      {CONFIG.showFloatingDecor && (
+        <div className="floating-decor">
+          <span className="decor decor-1">💕</span>
+          <span className="decor decor-2">✨</span>
+          <span className="decor decor-3">🌸</span>
+          <span className="decor decor-4">💖</span>
+        </div>
+      )}
 
       <div className="invitation-card">
-        <span className="invitation-emoji secret-trigger" onClick={handleEmojiClick}>
-          💌
+        <span className={`invitation-emoji${CONFIG.showAdminEntry ? ' secret-trigger' : ''}`} onClick={handleEmojiClick}>
+          {CONFIG.showAdminEntry ? '💌' : '📅'}
         </span>
-        <h1 className="invitation-title">可以和蛙一起约会嘛？</h1>
-        <p className="invitation-hint">
-          系统检测到：对方已经紧张到开始写网页了
-        </p>
+        <h1 className="invitation-title">{CONFIG.inviteTitle}</h1>
+        {CONFIG.inviteHint && (
+          <p className="invitation-hint">{CONFIG.inviteHint}</p>
+        )}
 
         <div className="invitation-buttons">
           <button className="btn-primary invitation-yes-btn" onClick={onAccept}>
-            愿意 ❤️
+            {CONFIG.showEvadingButton ? '愿意 ❤️' : '开始预约'}
           </button>
-          <EvadingButton label="不愿意 😭" />
+          {CONFIG.showEvadingButton && <EvadingButton label="不愿意 😭" />}
         </div>
       </div>
     </div>
