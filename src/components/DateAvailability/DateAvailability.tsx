@@ -45,8 +45,33 @@ export function DateAvailability() {
     }
   }, []);
 
-  const handleDayDown = (day: number) => {
+  const handleDayDown = (day: number, e: React.MouseEvent) => {
     const key = dateKey(day);
+
+    // Ctrl+点击：切换单个日期
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (selectedDates.includes(key)) {
+        const next = selectedDates.filter((d) => d !== key);
+        setSelectedDates(next);
+        if (next.length > 0) loadAvailability(next);
+        else setAvailability({});
+      } else {
+        const next = [...selectedDates, key].sort();
+        setSelectedDates(next);
+        loadAvailability(next);
+      }
+      return;
+    }
+
+    // 点击已选中的单日 → 取消选中
+    if (selectedDates.length === 1 && selectedDates[0] === key) {
+      setSelectedDates([]);
+      setAvailability({});
+      return;
+    }
+
+    // 普通点击或拖拽：开始新选择
     dragStartRef.current = key;
     isDraggingRef.current = true;
     setSelectedDates([key]);
@@ -57,7 +82,6 @@ export function DateAvailability() {
     if (!isDraggingRef.current || !dragStartRef.current) return;
     const key = dateKey(day);
     const start = dragStartRef.current;
-    // 计算范围内的所有日期
     const allDates = getDatesInRange(start, key);
     setSelectedDates(allDates);
     if (allDates.length === 1) loadAvailability(allDates);
@@ -149,7 +173,7 @@ export function DateAvailability() {
                 key={`d-${day}-${i}`}
                 className={`day-cell${disabled ? ' past' : ''}${td ? ' today' : ''}${sel ? ' selected' : ''}`}
                 disabled={disabled}
-                onMouseDown={() => handleDayDown(day)}
+                onMouseDown={(e) => handleDayDown(day, e)}
                 onMouseEnter={() => handleDayEnter(day)}
               >{day}</button>
             );
