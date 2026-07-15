@@ -203,40 +203,44 @@ export function DateAvailability() {
         </div>
       </div>
 
-      {/* 时段开关 */}
-      {selectedDates.length > 0 && (
-        <div className="da-slots">
-          <h4>{rangeLabel()}</h4>
-          {HOUR_GROUPS.map((g) => (
-            <div key={g.label} className="da-group">
-              <span className="da-group-label">{g.label}</span>
-              <div className="da-hour-grid" onMouseDown={(e) => e.preventDefault()}>
-                {g.hours.map((h) => {
-                  const state = aggregated[h];
-                  let cls = 'da-hour-btn';
-                  let label = `${h}:00`;
-                  if (state === 'all-on') { cls += ' on'; label += ' ✅'; }
-                  else if (state === 'all-off') { cls += ' off'; label += ' ❌'; }
-                  else { cls += ' mixed'; label += ' 🔀'; }
+      {/* 时段开关 — 永远渲染，避免 DOM 变化触发滚动 */}
+      <div className={`da-slots${selectedDates.length === 0 ? ' da-slots-hidden' : ''}`}>
+        {selectedDates.length === 0 ? (
+          <p className="da-slots-empty">👆 在上面日历选中日期来编辑时段</p>
+        ) : (
+          <>
+            <h4>{rangeLabel()}</h4>
+            {HOUR_GROUPS.map((g) => (
+              <div key={g.label} className="da-group">
+                <span className="da-group-label">{g.label}</span>
+                <div className="da-hour-grid" onMouseDown={(e) => e.preventDefault()}>
+                  {g.hours.map((h) => {
+                    const state = aggregated[h];
+                    let cls = 'da-hour-btn';
+                    let label = `${h}:00`;
+                    if (state === 'all-on') { cls += ' on'; label += ' ✅'; }
+                    else if (state === 'all-off') { cls += ' off'; label += ' ❌'; }
+                    else { cls += ' mixed'; label += ' 🔀'; }
 
-                  return (
-                    <button
-                      type="button" tabIndex={-1}
-                      key={h}
-                      className={cls}
-                      onMouseDown={(e) => onHourDown(h, e)}
-                      onMouseEnter={() => onHourEnter(h)}
-                      disabled={state === 'mixed'}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        type="button" tabIndex={-1}
+                        key={h}
+                        className={cls}
+                        onMouseDown={(e) => onHourDown(h, e)}
+                        onMouseEnter={() => onHourEnter(h)}
+                        disabled={state === 'mixed'}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 }

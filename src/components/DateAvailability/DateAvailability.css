@@ -28,6 +28,17 @@
   border-radius: var(--radius-card);
 }
 
+.da-slots-hidden {
+  /* always visible, just show different content */
+}
+
+.da-slots-empty {
+  text-align: center;
+  color: #c0b0b0;
+  font-size: 0.9rem;
+  padding: 20px 0;
+}
+
 .da-slots h4 {
   color: var(--color-pink-dark);
   margin-bottom: 12px;
