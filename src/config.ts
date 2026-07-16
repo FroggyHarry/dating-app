@@ -52,7 +52,7 @@ const elvaConfig: ModeConfig = {
   showEvadingButton: true,
   showAdminEntry: true,
   requireName: false,
-  requireApproval: false,
+  requireApproval: true,
   hasActivities: true,
   afterConfirmTitle: '',
   afterConfirmMsg: '',
