@@ -10,6 +10,7 @@ export function useAppointments() {
     const { data } = await supabase
       .from('appointments')
       .select('*')
+      .neq('status', 'rejected')
       .order('created_at', { ascending: false });
     if (data) setAppointments(data);
     setLoading(false);
