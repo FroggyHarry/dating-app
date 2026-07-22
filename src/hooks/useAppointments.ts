@@ -45,11 +45,6 @@ export function useAppointments() {
     [fetchAppointments]
   );
 
-  const deleteAppointment = useCallback(async (id: number) => {
-    await supabase.from('appointments').delete().eq('id', id);
-    setAppointments((prev) => prev.filter((a) => a.id !== id));
-  }, []);
-
   const approveAppointment = useCallback(async (id: number) => {
     const appt = appointments.find((a) => a.id === id);
     if (!appt) return;
@@ -62,11 +57,26 @@ export function useAppointments() {
   }, [appointments]);
 
   const rejectAppointment = useCallback(async (id: number) => {
+    const appt = appointments.find((a) => a.id === id);
     await supabase.from('appointments').update({ status: 'rejected' }).eq('id', id);
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: 'rejected' } : a))
     );
-  }, []);
+    // 如果之前是已确认的，释放那3小时
+    if (appt && appt.status === 'confirmed') {
+      unblockHours(appt.date, parseInt(appt.time_slot));
+    }
+  }, [appointments]);
+
+  // 删除时也要释放已确认的时段
+  const deleteAppointment = useCallback(async (id: number) => {
+    const appt = appointments.find((a) => a.id === id);
+    await supabase.from('appointments').delete().eq('id', id);
+    setAppointments((prev) => prev.filter((a) => a.id !== id));
+    if (appt && appt.status === 'confirmed') {
+      unblockHours(appt.date, parseInt(appt.time_slot));
+    }
+  }, [appointments]);
 
   return { appointments, loading, addAppointment, deleteAppointment, approveAppointment, rejectAppointment, refresh: fetchAppointments };
 }
@@ -74,10 +84,13 @@ export function useAppointments() {
 /** 阻断某日期的 hour + 接下来2小时 */
 async function blockHours(date: string, hour: number) {
   for (let h = hour; h < hour + 3; h++) {
-    await supabase.from('availability').upsert({
-      date,
-      hour: h % 24,
-      is_available: false,
-    }, { onConflict: 'date,hour' });
+    await supabase.from('availability').upsert({ date, hour: h % 24, is_available: false }, { onConflict: 'date,hour' });
+  }
+}
+
+/** 释放某日期的 hour + 接下来2小时 */
+async function unblockHours(date: string, hour: number) {
+  for (let h = hour; h < hour + 3; h++) {
+    await supabase.from('availability').upsert({ date, hour: h % 24, is_available: true }, { onConflict: 'date,hour' });
   }
 }
