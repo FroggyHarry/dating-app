@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { DbAppointment } from '../../lib/supabase';
 import { formatDateCN, formatTimeCN } from '../../utils/dateUtils';
 import './AppointmentList.css';
@@ -18,8 +17,6 @@ const statusBadge = (s: string | null) => {
 };
 
 export function AppointmentList({ appointments, loading, onDelete, onApprove, onReject }: AppointmentListProps) {
-  const [confirmId, setConfirmId] = useState<number | null>(null);
-
   if (loading) return <p className="appt-loading">加载中...</p>;
 
   if (appointments.length === 0) {
@@ -61,14 +58,7 @@ export function AppointmentList({ appointments, loading, onDelete, onApprove, on
                 <button className="btn-reject" onClick={() => onReject(a.id)}>❌</button>
               </>
             )}
-            {confirmId === a.id ? (
-              <div className="appt-delete-confirm">
-                <button className="btn-del-yes" onClick={() => { onDelete(a.id); setConfirmId(null); }}>删除</button>
-                <button className="btn-del-no" onClick={() => setConfirmId(null)}>取消</button>
-              </div>
-            ) : (
-              <button className="appt-delete-btn" onClick={() => setConfirmId(a.id)}>🗑️</button>
-            )}
+            <button className="appt-delete-btn" onClick={() => onDelete(a.id)}>🗑️</button>
           </div>
         </div>
       ))}
