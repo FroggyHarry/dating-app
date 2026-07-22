@@ -16,6 +16,7 @@ function App() {
   const [guestName, setGuestName] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const { isAdmin } = useAdmin();
   const { addAppointment } = useAppointments();
@@ -51,6 +52,9 @@ function App() {
     const { date, timeSlot, activity, food } = dateDetails;
     if (!date || !timeSlot) return;
     if (CONFIG.hasActivities && (!activity || !food)) return;
+    if (submitting) return;
+
+    setSubmitting(true);
 
     let loc = '';
     try {
@@ -70,13 +74,15 @@ function App() {
 
     setIsPending(status === 'pending');
     setPhase('confirmed');
-  }, [dateDetails, guestName, addAppointment]);
+    setSubmitting(false);
+  }, [dateDetails, guestName, addAppointment, submitting]);
 
   const handleReset = useCallback(() => {
     setPhase('scheduling');
     setDateDetails({ date: null, timeSlot: null, activity: null, food: null });
     setGuestName('');
     setIsPending(false);
+    setSubmitting(false);
   }, []);
 
   const handleFrogTripleClick = useCallback(() => setShowAdminLogin(true), []);
@@ -110,6 +116,7 @@ function App() {
           onUpdateActivity={handleUpdateActivity}
           onUpdateFood={handleUpdateFood}
           onConfirm={handleConfirm}
+          submitting={submitting}
         />
       )}
 

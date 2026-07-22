@@ -19,6 +19,7 @@ interface DateSchedulerProps {
   onUpdateActivity: (activity: string) => void;
   onUpdateFood: (food: string) => void;
   onConfirm: () => void;
+  submitting?: boolean;
 }
 
 export function DateScheduler({
@@ -30,6 +31,7 @@ export function DateScheduler({
   onUpdateActivity,
   onUpdateFood,
   onConfirm,
+  submitting,
 }: DateSchedulerProps) {
   const hasName = CONFIG.requireName;
   const hasActs = CONFIG.hasActivities;
@@ -147,8 +149,8 @@ export function DateScheduler({
             下一步 →
           </button>
         ) : (
-          <button className="btn-primary" disabled={!canNext()} onClick={onConfirm}>
-            {CONFIG.requireApproval ? '📩 提交预约' : '💌 确认约会'}
+          <button className="btn-primary" disabled={!canNext() || submitting} onClick={onConfirm}>
+            {submitting ? '⏳ 提交中...' : CONFIG.requireApproval ? '📩 提交预约' : '💌 确认约会'}
           </button>
         )}
       </div>
