@@ -59,9 +59,8 @@ export function useAppointments() {
   const rejectAppointment = useCallback(async (id: number) => {
     const appt = appointments.find((a) => a.id === id);
     await supabase.from('appointments').update({ status: 'rejected' }).eq('id', id);
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: 'rejected' } : a))
-    );
+    // 从列表中移除
+    setAppointments((prev) => prev.filter((a) => a.id !== id));
     // 如果之前是已确认的，释放那3小时
     if (appt && appt.status === 'confirmed') {
       unblockHours(appt.date, parseInt(appt.time_slot));
